@@ -96,8 +96,8 @@ def load_model(model_path):
     return tf.keras.models.load_model(model_path)
 
 # Memuat model dengan cache
-model1 = load_model("D:/SIBI/GitHub/model/VGG16.keras")
-model2 = load_model("D:/SIBI/GitHub/model/VGG19.keras")
+model1 = load_model("model/VGG16.keras")
+model2 = load_model("model/VGG19.keras")
 models = {"VGG16": model1, "VGG19": model2}
 
 def webcam_classification_page(models):
