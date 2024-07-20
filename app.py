@@ -56,7 +56,8 @@ Sistem Isyarat Bahasa Indonesia (SIBI) adalah bahasa formal yang
 diresmikan oleh Kementerian Pendidikan dan Kebudayaan pada tahun 1997 yang
 diadopsi dari American Sign Language atau dikenal dengan sebutan ASL. SIBI
 merupakan bahasa isyarat dengan menggunakan tangan kanan untuk menunjukkan
-tulisan alfabet."""
+tulisan alfabet.
+"""
 
 # Fungsi untuk memperbaiki orientasi gambar
 def correct_image_orientation(img):
@@ -72,12 +73,30 @@ def correct_image_orientation(img):
         elif exif[orientation] == 8:
             img = img.rotate(90, expand=True)
     except (AttributeError, KeyError, IndexError):
-        # In case of an error, return the image as it is
         pass
     return img
 
+# Fungsi untuk menampilkan halaman landing page
+def landing_page():
+    st.title("Sistem Isyarat Bahasa Indonesia (SIBI)")
+    st.header("Perkenalan Dataset")
+    st.markdown(about)
+    st.write("Berikut adalah contoh gestur tangan untuk setiap huruf dalam alfabet Bahasa Isyarat Indonesia (SIBI):")
+
+    cols = st.columns(4)
+    for idx, (label, url) in enumerate(image_urls.items()):
+        col = cols[idx % 4]
+        with col:
+            st.write(f"Mewakili huruf :  {label}")
+            response = requests.get(url)
+            img = Image.open(BytesIO(response.content))
+            img = correct_image_orientation(img)
+            st.image(img, use_column_width=True)
+
 # Fungsi untuk mengunduh model dari Google Drive
 def download_from_drive(url, output_path):
+    if not os.path.exists(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
     if not os.path.exists(output_path):
         gdown.download(url, output_path, quiet=False)
     return output_path
@@ -89,33 +108,15 @@ def load_model_from_drive(url, output_path):
     return tf.keras.models.load_model(model_path)
 
 # URL Google Drive dan jalur file lokal untuk model
-vgg16_url = 'https://drive.google.com/file/d/1Kh6UEPSnk8O6SfiTzMGoe5BfxwCTsdSg/view?usp=sharing'
-vgg19_url = 'https://drive.google.com/file/d/13cPryeAMqQEV2dUGE-CRb33IKN2ZPU04/view?usp=sharing'
+vgg16_url = 'https://drive.google.com/uc?id=1Kh6UEPSnk8O6SfiTzMGoe5BfxwCTsdSg'
 vgg16_path = 'model/VGG16.keras'
+vgg19_url = 'https://drive.google.com/uc?id=13cPryeAMqQEV2dUGE-CRb33IKN2ZPU04'
 vgg19_path = 'model/VGG19.keras'
 
 # Memuat model dengan cache
 model1 = load_model_from_drive(vgg16_url, vgg16_path)
 model2 = load_model_from_drive(vgg19_url, vgg19_path)
 models = {"VGG16": model1, "VGG19": model2}
-
-# Fungsi untuk menampilkan halaman landing page
-def landing_page():
-    st.title("Sistem Isyarat Bahasa Indonesia (SIBI)")
-    st.header("Perkenalan Dataset")
-    st.markdown(about)
-    st.write("Berikut adalah contoh gestur tangan untuk setiap huruf dalam alfabet Bahasa Isyarat Indonesia (SIBI):")
-
-    # Menampilkan gambar dari setiap kelas dalam grid 4 gambar per baris
-    cols = st.columns(4)
-    for idx, (label, url) in enumerate(image_urls.items()):
-        col = cols[idx % 4]
-        with col:
-            st.write(f"Mewakili huruf :  {label}")
-            response = requests.get(url)
-            img = Image.open(BytesIO(response.content))
-            img = correct_image_orientation(img)
-            st.image(img, use_column_width=True)
 
 def webcam_classification_page(models):
     st.title("Webcam Classification")
@@ -128,7 +129,7 @@ def webcam_classification_page(models):
     FRAME_WINDOW = st.image([])
 
     mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(max_num_hands=1)  # Menggunakan maksimal satu tangan
+    hands = mp_hands.Hands(max_num_hands=1)
     mp_drawing = mp.solutions.drawing_utils
 
     camera = cv2.VideoCapture(0)
@@ -138,7 +139,7 @@ def webcam_classification_page(models):
         if not ret:
             break
 
-        frame = cv2.flip(frame, 1)  # Membalikkan gambar dari webcam untuk efek cermin
+        frame = cv2.flip(frame, 1)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         results = hands.process(frame_rgb)
@@ -178,14 +179,12 @@ def upload_classification_page(models):
         image = Image.open(uploaded_file)
         st.image(image, caption='Uploaded Image.', use_column_width=True)
         
-        # Konversi gambar hitam putih ke RGB
         if image.mode != "RGB":
             image = image.convert("RGB")
         
         img_array = np.array(image.resize((128, 128)))/255.0
         img_array = np.expand_dims(img_array, axis=0)
         
-        # Melakukan prediksi dengan kedua model
         predictions_model1 = models["VGG16"].predict(img_array)
         predictions_model2 = models["VGG19"].predict(img_array)
         
