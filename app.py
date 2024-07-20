@@ -6,6 +6,8 @@ from PIL import Image, ExifTags
 from io import BytesIO
 import requests
 import mediapipe as mp
+import gdown
+import os
 
 st.set_page_config(page_title="SIBI Classification App", page_icon="🤟")
 
@@ -74,6 +76,29 @@ def correct_image_orientation(img):
         pass
     return img
 
+# Fungsi untuk mengunduh model dari Google Drive
+def download_from_drive(url, output_path):
+    if not os.path.exists(output_path):
+        gdown.download(url, output_path, quiet=False)
+    return output_path
+
+# Fungsi untuk memuat model menggunakan cache
+@st.cache_resource
+def load_model_from_drive(url, output_path):
+    model_path = download_from_drive(url, output_path)
+    return tf.keras.models.load_model(model_path)
+
+# URL Google Drive dan jalur file lokal untuk model
+vgg16_url = 'https://drive.google.com/file/d/1Kh6UEPSnk8O6SfiTzMGoe5BfxwCTsdSg/view?usp=sharing'
+vgg19_url = 'https://drive.google.com/file/d/13cPryeAMqQEV2dUGE-CRb33IKN2ZPU04/view?usp=sharing'
+vgg16_path = 'model/VGG16.keras'
+vgg19_path = 'model/VGG19.keras'
+
+# Memuat model dengan cache
+model1 = load_model_from_drive(vgg16_url, vgg16_path)
+model2 = load_model_from_drive(vgg19_url, vgg19_path)
+models = {"VGG16": model1, "VGG19": model2}
+
 # Fungsi untuk menampilkan halaman landing page
 def landing_page():
     st.title("Sistem Isyarat Bahasa Indonesia (SIBI)")
@@ -91,16 +116,6 @@ def landing_page():
             img = Image.open(BytesIO(response.content))
             img = correct_image_orientation(img)
             st.image(img, use_column_width=True)
-
-# Fungsi untuk memuat model menggunakan cache
-@st.cache_resource
-def load_model(model_path):
-    return tf.keras.models.load_model(model_path)
-
-# Memuat model dengan cache
-model1 = load_model("model/VGG16.keras")
-model2 = load_model("model/VGG19.keras")
-models = {"VGG16": model1, "VGG19": model2}
 
 def webcam_classification_page(models):
     st.title("Webcam Classification")
