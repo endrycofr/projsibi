@@ -110,7 +110,13 @@ def download_from_drive(url, output_path):
 def load_model_from_drive(url, output_path):
     model_path = download_from_drive(url, output_path)
     st.write(f"Muat model dari {model_path}...")
-    return tf.keras.models.load_model(model_path)
+    try:
+        model = tf.keras.models.load_model(model_path)
+        st.write("Model berhasil dimuat.")
+        return model
+    except Exception as e:
+        st.write(f"Error memuat model: {e}")
+        return None
 
 # URL Google Drive dan jalur file lokal untuk model
 vgg16_url = 'https://drive.google.com/uc?id=16DHxT0lAEwjK1ok7Fso5uqp1P-tT8VXi'
@@ -119,13 +125,14 @@ vgg19_url = 'https://drive.google.com/uc?id=1hAMEoSQvu2IcGBVAggokrIOGzqK9qb47'
 vgg19_path = 'VGG19.keras'  # Tidak menggunakan sub-folder
 
 # Memuat model dengan cache
-try:
-    model1 = load_model_from_drive(vgg16_url, vgg16_path)
-    model2 = load_model_from_drive(vgg19_url, vgg19_path)
-    models = {"VGG16": model1, "VGG19": model2}
-    st.write("Model berhasil dimuat.")
-except Exception as e:
-    st.write(f"Error memuat model: {e}")
+model1 = load_model_from_drive(vgg16_url, vgg16_path)
+model2 = load_model_from_drive(vgg19_url, vgg19_path)
+models = {"VGG16": model1, "VGG19": model2}
+
+if model1 is None or model2 is None:
+    st.write("Ada masalah dalam memuat model.")
+else:
+    st.write("Semua model berhasil dimuat.")
 
 def webcam_classification_page(models):
     st.title("Webcam Classification")
