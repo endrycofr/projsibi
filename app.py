@@ -7,6 +7,8 @@ from io import BytesIO
 import requests
 import mediapipe as mp
 
+st.set_page_config(page_title="SIBI Classification App", page_icon="🤟")
+
 # Daftar URL gambar untuk setiap kelas
 image_urls = {
     "A": "https://drive.google.com/uc?export=view&id=1WnCRi8Gle_SKR4vr2GkHEZ74wNIefkkw",
