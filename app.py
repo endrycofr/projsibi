@@ -93,13 +93,6 @@ def landing_page():
             img = correct_image_orientation(img)
             st.image(img, use_column_width=True)
 
-# Fungsi untuk mengunduh model dari Google Drive
-def download_from_drive(url, output_path):
-    if not os.path.exists(os.path.dirname(output_path)):
-        os.makedirs(os.path.dirname(output_path))
-    if not os.path.exists(output_path):
-        gdown.download(url, output_path, quiet=False)
-    return output_path
 
 # Fungsi untuk mengunduh model dari Google Drive
 def download_from_drive(url, output_path):
@@ -121,13 +114,9 @@ def load_model_from_drive(url, output_path):
 
 # URL Google Drive dan jalur file lokal untuk model
 vgg16_url = 'https://drive.google.com/uc?id=16DHxT0lAEwjK1ok7Fso5uqp1P-tT8VXi'
-vgg16_path = 'model/VGG16.keras'
+vgg16_path = 'VGG16.keras'  # Tidak menggunakan sub-folder
 vgg19_url = 'https://drive.google.com/uc?id=1hAMEoSQvu2IcGBVAggokrIOGzqK9qb47'
-vgg19_path = 'model/VGG19.keras'
-
-# Membuat direktori 'model' jika belum ada
-if not os.path.exists('model'):
-    os.makedirs('model')
+vgg19_path = 'VGG19.keras'  # Tidak menggunakan sub-folder
 
 # Memuat model dengan cache
 try:
