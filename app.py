@@ -101,22 +101,42 @@ def download_from_drive(url, output_path):
         gdown.download(url, output_path, quiet=False)
     return output_path
 
+# Fungsi untuk mengunduh model dari Google Drive
+def download_from_drive(url, output_path):
+    if not os.path.exists(output_path):
+        st.write(f"Mengunduh model dari {url}...")
+        gdown.download(url, output_path, quiet=False)
+    if os.path.exists(output_path):
+        st.write(f"Model berhasil diunduh: {output_path}")
+    else:
+        st.write(f"Model tidak ditemukan: {output_path}")
+    return output_path
+
 # Fungsi untuk memuat model menggunakan cache
 @st.cache_resource
 def load_model_from_drive(url, output_path):
     model_path = download_from_drive(url, output_path)
+    st.write(f"Muat model dari {model_path}...")
     return tf.keras.models.load_model(model_path)
 
 # URL Google Drive dan jalur file lokal untuk model
-vgg16_url = 'https://drive.google.com/uc?id=1Kh6UEPSnk8O6SfiTzMGoe5BfxwCTsdSg'
+vgg16_url = 'https://drive.google.com/uc?id=16DHxT0lAEwjK1ok7Fso5uqp1P-tT8VXi'
 vgg16_path = 'model/VGG16.keras'
-vgg19_url = 'https://drive.google.com/uc?id=13cPryeAMqQEV2dUGE-CRb33IKN2ZPU04'
+vgg19_url = 'https://drive.google.com/uc?id=1hAMEoSQvu2IcGBVAggokrIOGzqK9qb47'
 vgg19_path = 'model/VGG19.keras'
 
+# Membuat direktori 'model' jika belum ada
+if not os.path.exists('model'):
+    os.makedirs('model')
+
 # Memuat model dengan cache
-model1 = load_model_from_drive(vgg16_url, vgg16_path)
-model2 = load_model_from_drive(vgg19_url, vgg19_path)
-models = {"VGG16": model1, "VGG19": model2}
+try:
+    model1 = load_model_from_drive(vgg16_url, vgg16_path)
+    model2 = load_model_from_drive(vgg19_url, vgg19_path)
+    models = {"VGG16": model1, "VGG19": model2}
+    st.write("Model berhasil dimuat.")
+except Exception as e:
+    st.write(f"Error memuat model: {e}")
 
 def webcam_classification_page(models):
     st.title("Webcam Classification")
