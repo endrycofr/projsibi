@@ -6,38 +6,65 @@ from PIL import Image, ExifTags
 from io import BytesIO
 import requests
 import mediapipe as mp
-import gdown
 import os
+import time
 
 st.set_page_config(page_title="SIBI Classification App", page_icon="🤟")
 
-# Daftar URL gambar untuk setiap kelas
-image_urls = {
-    "A": "https://drive.google.com/uc?export=view&id=1WnCRi8Gle_SKR4vr2GkHEZ74wNIefkkw",
-    "B": "https://drive.google.com/uc?export=view&id=1QXj4oh1IOIoctQmnsgzHD63IgBsrt8Qd",
-    "C": "https://drive.google.com/uc?export=view&id=1a1LDkRN-VXHd4MdwFNcRibW1Se7DI3B_",
-    "D": "https://drive.google.com/uc?export=view&id=1-IxCobV_8pmbci3GjrTkWw5MipBwLslK",
-    "E": "https://drive.google.com/uc?export=view&id=12_bM-gYdW-nYP97fqMqr4FA-ZiDnMgGL",
-    "F": "https://drive.google.com/uc?export=view&id=1SOnxIRnwwkvmnvJyUzYPCtFrnKBlxVv7",
-    "G": "https://drive.google.com/uc?export=view&id=1Qwm-8iICfjczv-tXjyWaieB1O_WX5xod",
-    "H": "https://drive.google.com/uc?export=view&id=1tq8oGvH7qN7UkJdK71b6xYGnzpE4n0L4",
-    "I": "https://drive.google.com/uc?export=view&id=1RGZaz_ByzqVnGqcPP6QPxgYdjSIZgtok",
-    "K": "https://drive.google.com/uc?export=view&id=1BW94bUHP0Mxjc2MN6Ft2fXBDYeYRpdJN",
-    "L": "https://drive.google.com/uc?export=view&id=18MlNmoXVIbO8hFJzofLa6-EGXNhzJu3c",
-    "M": "https://drive.google.com/uc?export=view&id=1vgIokxNVf3HmXqJfwswgdo4A7qVCMo3E",
-    "N": "https://drive.google.com/uc?export=view&id=1hV1bwseyKvs3oPZWEg2Qbde9ryQ12q3p",
-    "O": "https://drive.google.com/uc?export=view&id=1x7Cb4RN2_z_K1yufa2GiFv9qX5NKRAYz",
-    "P": "https://drive.google.com/uc?export=view&id=1qdgA7dhgnCnRFRlhCRKcfPcgT65wB8gR",
-    "Q": "https://drive.google.com/uc?export=view&id=1MA1vxhOzqarFQYJC6xwxXK4cqanrBkaX",
-    "R": "https://drive.google.com/uc?export=view&id=1wArg9ptsvTbOc8l4LFXE_ca7o67c_YNb",
-    "S": "https://drive.google.com/uc?export=view&id=1gP52H7MLkfcb6Y3dOKmj3sgr5Sjnptam",
-    "T": "https://drive.google.com/uc?export=view&id=1gdo0IyWSYj0cOw8V7Mv-bmIckQG6_fHv",
-    "U": "https://drive.google.com/uc?export=view&id=1RwEGVSCxPLuK4oSJIGp6I1YZraq5zKKI",
-    "V": "https://drive.google.com/uc?export=view&id=1fNwZVnzW8s0uvG8MY1rdl80v6P9Wp4j3",
-    "W": "https://drive.google.com/uc?export=view&id=1N7IwI3KXL15ZeeGUDkQ3cdd1nQPe-R2b",
-    "X": "https://drive.google.com/uc?export=view&id=1YVpIs4ZxXQs0O1suzJa1bhMaYPSfmkAv",
-    "Y": "https://drive.google.com/uc?export=view&id=1VXZrNEnDAC1bDQQ8hJPrAayQLfGJS8uJ"
+# Daftar path gambar untuk setiap kelas
+image_paths = {
+    "A": "sample/A.jpg",
+    "B": "sample/B.jpg",
+    "C": "sample/C.jpg",
+    "D": "sample/D.jpg",
+    "E": "sample/E.jpg",
+    "F": "sample/F.jpg",
+    "G": "sample/G.jpg",
+    "H": "sample/H.jpg",
+    "I": "sample/I.jpg",
+    "K": "sample/K.jpg",
+    "L": "sample/L.jpg",
+    "M": "sample/M.jpg",
+    "N": "sample/N.jpg",
+    "O": "sample/O.jpg",
+    "P": "sample/P.jpg",
+    "Q": "sample/Q.jpg",
+    "R": "sample/R.jpg",
+    "S": "sample/S.jpg",
+    "T": "sample/T.jpg",
+    "U": "sample/U.jpg",
+    "V": "sample/V.jpg",
+    "W": "sample/W.jpg",
+    "X": "sample/X.jpg",
+    "Y": "sample/Y.jpg"
 }
+# Daftar URL gambar untuk setiap kelas
+# image_urls = {
+#     "A": "https://drive.google.com/uc?export=view&id=1WnCRi8Gle_SKR4vr2GkHEZ74wNIefkkw",
+#     "B": "https://drive.google.com/uc?export=view&id=1QXj4oh1IOIoctQmnsgzHD63IgBsrt8Qd",
+#     "C": "https://drive.google.com/uc?export=view&id=1a1LDkRN-VXHd4MdwFNcRibW1Se7DI3B_",
+#     "D": "https://drive.google.com/uc?export=view&id=1-IxCobV_8pmbci3GjrTkWw5MipBwLslK",
+#     "E": "https://drive.google.com/uc?export=view&id=12_bM-gYdW-nYP97fqMqr4FA-ZiDnMgGL",
+#     "F": "https://drive.google.com/uc?export=view&id=1SOnxIRnwwkvmnvJyUzYPCtFrnKBlxVv7",
+#     "G": "https://drive.google.com/uc?export=view&id=1Qwm-8iICfjczv-tXjyWaieB1O_WX5xod",
+#     "H": "https://drive.google.com/uc?export=view&id=1tq8oGvH7qN7UkJdK71b6xYGnzpE4n0L4",
+#     "I": "https://drive.google.com/uc?export=view&id=1RGZaz_ByzqVnGqcPP6QPxgYdjSIZgtok",
+#     "K": "https://drive.google.com/uc?export=view&id=1BW94bUHP0Mxjc2MN6Ft2fXBDYeYRpdJN",
+#     "L": "https://drive.google.com/uc?export=view&id=18MlNmoXVIbO8hFJzofLa6-EGXNhzJu3c",
+#     "M": "https://drive.google.com/uc?export=view&id=1vgIokxNVf3HmXqJfwswgdo4A7qVCMo3E",
+#     "N": "https://drive.google.com/uc?export=view&id=1hV1bwseyKvs3oPZWEg2Qbde9ryQ12q3p",
+#     "O": "https://drive.google.com/uc?export=view&id=1x7Cb4RN2_z_K1yufa2GiFv9qX5NKRAYz",
+#     "P": "https://drive.google.com/uc?export=view&id=1qdgA7dhgnCnRFRlhCRKcfPcgT65wB8gR",
+#     "Q": "https://drive.google.com/uc?export=view&id=1MA1vxhOzqarFQYJC6xwxXK4cqanrBkaX",
+#     "R": "https://drive.google.com/uc?export=view&id=1wArg9ptsvTbOc8l4LFXE_ca7o67c_YNb",
+#     "S": "https://drive.google.com/uc?export=view&id=1gP52H7MLkfcb6Y3dOKmj3sgr5Sjnptam",
+#     "T": "https://drive.google.com/uc?export=view&id=1gdo0IyWSYj0cOw8V7Mv-bmIckQG6_fHv",
+#     "U": "https://drive.google.com/uc?export=view&id=1RwEGVSCxPLuK4oSJIGp6I1YZraq5zKKI",
+#     "V": "https://drive.google.com/uc?export=view&id=1fNwZVnzW8s0uvG8MY1rdl80v6P9Wp4j3",
+#     "W": "https://drive.google.com/uc?export=view&id=1N7IwI3KXL15ZeeGUDkQ3cdd1nQPe-R2b",
+#     "X": "https://drive.google.com/uc?export=view&id=1YVpIs4ZxXQs0O1suzJa1bhMaYPSfmkAv",
+#     "Y": "https://drive.google.com/uc?export=view&id=1VXZrNEnDAC1bDQQ8hJPrAayQLfGJS8uJ"
+# }
 
 # Kamus untuk memetakan indeks ke huruf
 index_to_label = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H", 
@@ -47,16 +74,26 @@ index_to_label = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H"
 
 # About the dataset
 about = """
-Bahasa Isyarat merupakan bahasa yang diproduksi menggunakan gerakan
-tangan (gestur) dan dipersepsi menggunakan indra penglihatan untuk saling
-mengidentifikasi dan memperoleh informasi. Bahasa ini banyak digunakan oleh
-penyandang disabilitas tuli atau tuna rungu untuk berkomunikasi.
+Pengenalan Bahasa Isyarat SIBI
+Selamat datang di platform kami yang bertujuan untuk memudahkan komunikasi dengan penyandang disabilitas melalui pengenalan bahasa isyarat SIBI (Sistem Isyarat Bahasa Indonesia). Bahasa isyarat adalah bentuk komunikasi yang menggunakan gerakan tangan untuk menyampaikan pesan, terutama digunakan oleh teman-teman kita yang memiliki hambatan pendengaran.
 
-Sistem Isyarat Bahasa Indonesia (SIBI) adalah bahasa formal yang
-diresmikan oleh Kementerian Pendidikan dan Kebudayaan pada tahun 1997 yang
-diadopsi dari American Sign Language atau dikenal dengan sebutan ASL. SIBI
-merupakan bahasa isyarat dengan menggunakan tangan kanan untuk menunjukkan
-tulisan alfabet.
+Cara Kerja
+Website kami dirancang untuk membantu Anda mengenali huruf-huruf dalam bahasa isyarat SIBI dengan mudah dan cepat. Terdapat dua metode yang bisa Anda gunakan:
+
+Penggunaan Kamera Real-Time: Cukup aktifkan kamera Anda, dan sistem kami akan langsung mengenali gerakan tangan Anda. Dalam waktu singkat, huruf yang Anda isyaratkan akan muncul di layar. Hal ini memungkinkan interaksi langsung dan efisien tanpa perlu perangkat tambahan.
+
+Upload Gambar: Anda juga dapat mengunggah gambar tangan yang membentuk huruf tertentu, dan sistem kami akan menganalisis serta memberikan hasil pengenalan huruf berdasarkan gambar tersebut.
+
+Teknologi di Balik Layar
+Kami menggunakan metode Convolutional Neural Network (CNN) yang sudah teruji keakuratannya dalam mengenali gambar. Lebih spesifik lagi, kami mengimplementasikan arsitektur VGG16 dan VGG19, yang terkenal dalam komunitas kecerdasan buatan karena keunggulannya dalam klasifikasi gambar. Dengan model ini, website kami dapat mengenali bahasa isyarat dengan tingkat akurasi yang tinggi, bahkan dalam kondisi pencahayaan yang berbeda atau sudut pandang tangan yang bervariasi.
+
+Manfaat dan Keunggulan
+Aksesibilitas: Membuka pintu komunikasi bagi mereka yang memiliki kesulitan mendengar dan berbicara, serta bagi siapa saja yang ingin belajar bahasa isyarat.
+Kemudahan Penggunaan: Baik melalui kamera real-time maupun unggah gambar, proses pengenalan bahasa isyarat menjadi lebih mudah dan praktis.
+Keandalan: Dengan dukungan teknologi CNN dan model VGG16/VGG19, pengenalan huruf isyarat dapat dilakukan dengan presisi tinggi.
+
+Misi Kami
+Kami percaya bahwa teknologi dapat menjadi jembatan untuk menciptakan dunia yang lebih inklusif. Dengan platform ini, kami berharap dapat membantu lebih banyak orang untuk belajar dan memahami bahasa isyarat, sehingga dapat berkomunikasi dengan lebih baik dengan komunitas disabilitas
 """
 
 # Fungsi untuk memperbaiki orientasi gambar
@@ -79,60 +116,91 @@ def correct_image_orientation(img):
 # Fungsi untuk menampilkan halaman landing page
 def landing_page():
     st.title("Sistem Isyarat Bahasa Indonesia (SIBI)")
-    st.header("Perkenalan Dataset")
-    st.markdown(about)
+    # Bagian Judul
+    st.markdown("## Pengenalan Bahasa Isyarat SIBI")
+    st.write("""
+    Selamat datang di platform kami yang bertujuan untuk memudahkan komunikasi dengan penyandang disabilitas melalui pengenalan bahasa isyarat SIBI (Sistem Isyarat Bahasa Indonesia). Bahasa isyarat adalah bentuk komunikasi yang menggunakan gerakan tangan untuk menyampaikan pesan, terutama digunakan oleh teman-teman kita yang memiliki hambatan pendengaran.
+    """)
+
+    # Bagian Cara Kerja
+    st.markdown("## Cara Kerja")
+    st.write("""
+    Website kami dirancang untuk membantu Anda mengenali huruf-huruf dalam bahasa isyarat SIBI dengan mudah dan cepat. Terdapat dua metode yang bisa Anda gunakan:
+    """)
+    st.markdown("- **Penggunaan Kamera Real-Time:** Cukup aktifkan kamera Anda, dan sistem kami akan langsung mengenali gerakan tangan Anda. Dalam waktu singkat, huruf yang Anda isyaratkan akan muncul di layar. Hal ini memungkinkan interaksi langsung dan efisien tanpa perlu perangkat tambahan.")
+    st.markdown("- **Upload Gambar:** Anda juga dapat mengunggah gambar tangan yang membentuk huruf tertentu, dan sistem kami akan menganalisis serta memberikan hasil pengenalan huruf berdasarkan gambar tersebut.")
+
+    # Bagian Teknologi di Balik Layar
+    st.markdown("## Teknologi di Balik Layar")
+    st.write("""
+    Kami menggunakan metode Convolutional Neural Network (CNN) yang sudah teruji keakuratannya dalam mengenali gambar. Lebih spesifik lagi, kami mengimplementasikan arsitektur VGG16 dan VGG19, yang terkenal dalam komunitas kecerdasan buatan karena keunggulannya dalam klasifikasi gambar. Dengan model ini, website kami dapat mengenali bahasa isyarat dengan tingkat akurasi yang tinggi, bahkan dalam kondisi pencahayaan yang berbeda atau sudut pandang tangan yang bervariasi.
+    """)
+
+    # Bagian Manfaat dan Keunggulan
+    st.markdown("## Manfaat dan Keunggulan")
+    st.write("""
+    - **Aksesibilitas:** Membuka pintu komunikasi bagi mereka yang memiliki kesulitan mendengar dan berbicara, serta bagi siapa saja yang ingin belajar bahasa isyarat.
+    - **Kemudahan Penggunaan:** Baik melalui kamera real-time maupun unggah gambar, proses pengenalan bahasa isyarat menjadi lebih mudah dan praktis.
+    - **Keandalan:** Dengan dukungan teknologi CNN dan model VGG16/VGG19, pengenalan huruf isyarat dapat dilakukan dengan presisi tinggi.
+    """)
+
+    # Bagian Misi Kami
+    st.markdown("## Misi Kami")
+    st.write("""
+    Kami percaya bahwa teknologi dapat menjadi jembatan untuk menciptakan dunia yang lebih inklusif. Dengan platform ini, kami berharap dapat membantu lebih banyak orang untuk belajar dan memahami bahasa isyarat, sehingga dapat berkomunikasi dengan lebih baik dengan komunitas disabilitas.
+    """)
+# def landing_page(): # Fungsi untuk menampilkan halaman landing page dengan menggunakan link drive
+#     st.title("Sistem Isyarat Bahasa Indonesia (SIBI)")
+#     st.header("Perkenalan Dataset")
+#     st.markdown(about)
+#     st.write("Berikut adalah contoh gestur tangan untuk setiap huruf dalam alfabet Bahasa Isyarat Indonesia (SIBI):")
+
+#     cols = st.columns(4)
+#     for idx, (label, url) in enumerate(image_urls.items()):
+#         col = cols[idx % 4]
+#         with col:
+#             st.write(f"Mewakili huruf :  {label}")
+#             response = requests.get(url)
+#             img = Image.open(BytesIO(response.content))
+#             img = correct_image_orientation(img)
+#             st.image(img, use_column_width=True)
+
+# Fungsi untuk contoh data gambar
+def contoh_gestur():
+    st.title("Contoh Gestur Tangan")
     st.write("Berikut adalah contoh gestur tangan untuk setiap huruf dalam alfabet Bahasa Isyarat Indonesia (SIBI):")
 
     cols = st.columns(4)
-    for idx, (label, url) in enumerate(image_urls.items()):
+    for idx, (label, path) in enumerate(image_paths.items()):
         col = cols[idx % 4]
         with col:
-            st.write(f"Mewakili huruf :  {label}")
-            response = requests.get(url)
-            img = Image.open(BytesIO(response.content))
-            img = correct_image_orientation(img)
-            st.image(img, use_column_width=True)
-
-
-# Fungsi untuk mengunduh model dari Google Drive
-def download_from_drive(url, output_path):
-    if not os.path.exists(output_path):
-        st.write(f"Mengunduh model dari {url}...")
-        gdown.download(url, output_path, quiet=False)
-    if os.path.exists(output_path):
-        st.write(f"Model berhasil diunduh: {output_path}")
-    else:
-        st.write(f"Model tidak ditemukan: {output_path}")
-    return output_path
+            st.write(f"Mewakili huruf: {label}")
+            if os.path.exists(path):
+                img = Image.open(path)
+                img = correct_image_orientation(img)
+                st.image(img, use_column_width=True)
+            else:
+                st.write(f"File '{path}' tidak ditemukan.")
 
 # Fungsi untuk memuat model menggunakan cache
 @st.cache_resource
-def load_model_from_drive(url, output_path):
-    model_path = download_from_drive(url, output_path)
-    st.write(f"Muat model dari {model_path}...")
+def load_model(model_path):
     try:
         model = tf.keras.models.load_model(model_path)
-        st.write("Model berhasil dimuat.")
+        # st.write("Model berhasil dimuat.")
         return model
     except Exception as e:
-        st.write(f"Error memuat model: {e}")
+        # st.write(f"Error memuat model: {e}")
         return None
 
-# URL Google Drive dan jalur file lokal untuk model
-vgg16_url = 'https://drive.google.com/uc?id=16DHxT0lAEwjK1ok7Fso5uqp1P-tT8VXi'
-vgg16_path = 'VGG16.keras'  # Tidak menggunakan sub-folder
-vgg19_url = 'https://drive.google.com/uc?id=1hAMEoSQvu2IcGBVAggokrIOGzqK9qb47'
-vgg19_path = 'VGG19.keras'  # Tidak menggunakan sub-folder
+# Jalur file lokal untuk model
+vgg16_path = 'model/VGG16FineTune.keras'
+vgg19_path = 'model/VGG19FineTune.keras'
 
 # Memuat model dengan cache
-model1 = load_model_from_drive(vgg16_url, vgg16_path)
-model2 = load_model_from_drive(vgg19_url, vgg19_path)
+model1 = load_model(vgg16_path)
+model2 = load_model(vgg19_path)
 models = {"VGG16": model1, "VGG19": model2}
-
-if model1 is None or model2 is None:
-    st.write("Ada masalah dalam memuat model.")
-else:
-    st.write("Semua model berhasil dimuat.")
 
 def webcam_classification_page(models):
     st.title("Webcam Classification")
@@ -145,10 +213,18 @@ def webcam_classification_page(models):
     FRAME_WINDOW = st.image([])
 
     mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(max_num_hands=1)
+    hands = mp_hands.Hands(
+    max_num_hands=1,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5)
     mp_drawing = mp.solutions.drawing_utils
 
     camera = cv2.VideoCapture(0)
+    detected_letters = []
+    last_detected_time = time.time()  # Waktu terakhir huruf terdeteksi
+
+    kalimat_placeholder = st.empty()  # Tempat untuk kalimat yang dibentuk
+    predicted_label = ''  # Nilai default untuk predicted_label
 
     while run:
         ret, frame = camera.read()
@@ -182,7 +258,13 @@ def webcam_classification_page(models):
 
                     cv2.putText(frame_rgb, predicted_label, (cx_min, cy_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
+                    current_time = time.time()
+                    if current_time - last_detected_time > 2:  # Jeda 2 detik antar huruf
+                        detected_letters.append(predicted_label)
+                        last_detected_time = current_time
+
         FRAME_WINDOW.image(frame_rgb)
+        kalimat_placeholder.write(f"Kalimat yang dibentuk: {''.join(detected_letters)}  |  Huruf yang terdeteksi: {predicted_label}")  # Menampilkan kalimat dan huruf di sebelah kanan
 
     camera.release()
 
@@ -193,6 +275,7 @@ def upload_classification_page(models):
     uploaded_file = st.file_uploader("Pilih sebuah gambar...", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
+        image = correct_image_orientation(image)
         st.image(image, caption='Uploaded Image.', use_column_width=True)
         
         if image.mode != "RGB":
@@ -222,10 +305,12 @@ def upload_classification_page(models):
 
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Landing Page", "Webcam Classification", "Image Upload Classification"])
+    page = st.sidebar.radio("Go to", ["Tentang SIBI", "Contoh Gestur Tangan", "Webcam Classification", "Image Upload Classification"])
 
-    if page == "Landing Page":
+    if page == "Tentang SIBI":
         landing_page()
+    elif page == "Contoh Gestur Tangan":
+        contoh_gestur()
     elif page == "Webcam Classification":
         webcam_classification_page(models)
     elif page == "Image Upload Classification":
