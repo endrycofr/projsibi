@@ -3,8 +3,6 @@ import tensorflow as tf
 import cv2
 import numpy as np
 from PIL import Image, ExifTags
-from io import BytesIO
-import requests
 import mediapipe as mp
 import os
 import time
@@ -38,33 +36,6 @@ image_paths = {
     "X": "sample/X.jpg",
     "Y": "sample/Y.jpg"
 }
-# Daftar URL gambar untuk setiap kelas
-# image_urls = {
-#     "A": "https://drive.google.com/uc?export=view&id=1WnCRi8Gle_SKR4vr2GkHEZ74wNIefkkw",
-#     "B": "https://drive.google.com/uc?export=view&id=1QXj4oh1IOIoctQmnsgzHD63IgBsrt8Qd",
-#     "C": "https://drive.google.com/uc?export=view&id=1a1LDkRN-VXHd4MdwFNcRibW1Se7DI3B_",
-#     "D": "https://drive.google.com/uc?export=view&id=1-IxCobV_8pmbci3GjrTkWw5MipBwLslK",
-#     "E": "https://drive.google.com/uc?export=view&id=12_bM-gYdW-nYP97fqMqr4FA-ZiDnMgGL",
-#     "F": "https://drive.google.com/uc?export=view&id=1SOnxIRnwwkvmnvJyUzYPCtFrnKBlxVv7",
-#     "G": "https://drive.google.com/uc?export=view&id=1Qwm-8iICfjczv-tXjyWaieB1O_WX5xod",
-#     "H": "https://drive.google.com/uc?export=view&id=1tq8oGvH7qN7UkJdK71b6xYGnzpE4n0L4",
-#     "I": "https://drive.google.com/uc?export=view&id=1RGZaz_ByzqVnGqcPP6QPxgYdjSIZgtok",
-#     "K": "https://drive.google.com/uc?export=view&id=1BW94bUHP0Mxjc2MN6Ft2fXBDYeYRpdJN",
-#     "L": "https://drive.google.com/uc?export=view&id=18MlNmoXVIbO8hFJzofLa6-EGXNhzJu3c",
-#     "M": "https://drive.google.com/uc?export=view&id=1vgIokxNVf3HmXqJfwswgdo4A7qVCMo3E",
-#     "N": "https://drive.google.com/uc?export=view&id=1hV1bwseyKvs3oPZWEg2Qbde9ryQ12q3p",
-#     "O": "https://drive.google.com/uc?export=view&id=1x7Cb4RN2_z_K1yufa2GiFv9qX5NKRAYz",
-#     "P": "https://drive.google.com/uc?export=view&id=1qdgA7dhgnCnRFRlhCRKcfPcgT65wB8gR",
-#     "Q": "https://drive.google.com/uc?export=view&id=1MA1vxhOzqarFQYJC6xwxXK4cqanrBkaX",
-#     "R": "https://drive.google.com/uc?export=view&id=1wArg9ptsvTbOc8l4LFXE_ca7o67c_YNb",
-#     "S": "https://drive.google.com/uc?export=view&id=1gP52H7MLkfcb6Y3dOKmj3sgr5Sjnptam",
-#     "T": "https://drive.google.com/uc?export=view&id=1gdo0IyWSYj0cOw8V7Mv-bmIckQG6_fHv",
-#     "U": "https://drive.google.com/uc?export=view&id=1RwEGVSCxPLuK4oSJIGp6I1YZraq5zKKI",
-#     "V": "https://drive.google.com/uc?export=view&id=1fNwZVnzW8s0uvG8MY1rdl80v6P9Wp4j3",
-#     "W": "https://drive.google.com/uc?export=view&id=1N7IwI3KXL15ZeeGUDkQ3cdd1nQPe-R2b",
-#     "X": "https://drive.google.com/uc?export=view&id=1YVpIs4ZxXQs0O1suzJa1bhMaYPSfmkAv",
-#     "Y": "https://drive.google.com/uc?export=view&id=1VXZrNEnDAC1bDQQ8hJPrAayQLfGJS8uJ"
-# }
 
 # Kamus untuk memetakan indeks ke huruf
 index_to_label = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H", 
@@ -149,22 +120,6 @@ def landing_page():
     st.write("""
     Kami percaya bahwa teknologi dapat menjadi jembatan untuk menciptakan dunia yang lebih inklusif. Dengan platform ini, kami berharap dapat membantu lebih banyak orang untuk belajar dan memahami bahasa isyarat, sehingga dapat berkomunikasi dengan lebih baik dengan komunitas disabilitas.
     """)
-# def landing_page(): # Fungsi untuk menampilkan halaman landing page dengan menggunakan link drive
-#     st.title("Sistem Isyarat Bahasa Indonesia (SIBI)")
-#     st.header("Perkenalan Dataset")
-#     st.markdown(about)
-#     st.write("Berikut adalah contoh gestur tangan untuk setiap huruf dalam alfabet Bahasa Isyarat Indonesia (SIBI):")
-
-#     cols = st.columns(4)
-#     for idx, (label, url) in enumerate(image_urls.items()):
-#         col = cols[idx % 4]
-#         with col:
-#             st.write(f"Mewakili huruf :  {label}")
-#             response = requests.get(url)
-#             img = Image.open(BytesIO(response.content))
-#             img = correct_image_orientation(img)
-#             st.image(img, use_column_width=True)
-
 # Fungsi untuk contoh data gambar
 def contoh_gestur():
     st.title("Contoh Gestur Tangan")
@@ -190,7 +145,7 @@ def load_model(model_path):
         # st.write("Model berhasil dimuat.")
         return model
     except Exception as e:
-        # st.write(f"Error memuat model: {e}")
+        st.write(f"Error memuat model: {e}")
         return None
 
 # Jalur file lokal untuk model
@@ -209,14 +164,17 @@ def webcam_classification_page(models):
     model_choice = st.selectbox("Choose a model", models.keys())
     model = models[model_choice]
 
+    if model is None:
+        st.error("Failed to load model. Please check the model path and try again.")
+        return
     run = st.button("Start Webcam")
     FRAME_WINDOW = st.image([])
 
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
-    max_num_hands=1,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5)
+        max_num_hands=1,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5)
     mp_drawing = mp.solutions.drawing_utils
 
     camera = cv2.VideoCapture(0)
@@ -225,10 +183,15 @@ def webcam_classification_page(models):
 
     kalimat_placeholder = st.empty()  # Tempat untuk kalimat yang dibentuk
     predicted_label = ''  # Nilai default untuk predicted_label
+    if not camera.isOpened():
+        st.error("Failed to access webcam. Please ensure the webcam is properly connected.")
+        return
 
+    # Memulai kamera
     while run:
         ret, frame = camera.read()
         if not ret:
+            st.write("Failed to capture image from webcam.")
             break
 
         frame = cv2.flip(frame, 1)
@@ -252,9 +215,13 @@ def webcam_classification_page(models):
                     hand_img = np.expand_dims(hand_img, axis=0)
                     hand_img = hand_img / 255.0
 
-                    prediction = model.predict(hand_img)
-                    predicted_index = np.argmax(prediction)
-                    predicted_label = index_to_label[predicted_index]
+                    try:
+                        prediction = model.predict(hand_img)
+                        predicted_index = np.argmax(prediction)
+                        predicted_label = index_to_label[predicted_index]
+                    except Exception as e:
+                        st.write(f"Error during prediction: {e}")
+                        predicted_label = "Error"
 
                     cv2.putText(frame_rgb, predicted_label, (cx_min, cy_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
@@ -267,6 +234,7 @@ def webcam_classification_page(models):
         kalimat_placeholder.write(f"Kalimat yang dibentuk: {''.join(detected_letters)}  |  Huruf yang terdeteksi: {predicted_label}")  # Menampilkan kalimat dan huruf di sebelah kanan
 
     camera.release()
+
 
 def upload_classification_page(models):
     st.title("Image Upload Classification")
@@ -283,7 +251,9 @@ def upload_classification_page(models):
         
         img_array = np.array(image.resize((128, 128)))/255.0
         img_array = np.expand_dims(img_array, axis=0)
-        
+        if models["VGG16"] is None or models["VGG19"] is None:
+            st.error("Failed to load one or both models. Please check the model paths and try again.")
+            return        
         predictions_model1 = models["VGG16"].predict(img_array)
         predictions_model2 = models["VGG19"].predict(img_array)
         
@@ -304,6 +274,7 @@ def upload_classification_page(models):
             st.write(f"Confidence: {confidence_model2:.2f}%")
 
 def main():
+    
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["Tentang SIBI", "Contoh Gestur Tangan", "Webcam Classification", "Image Upload Classification"])
 

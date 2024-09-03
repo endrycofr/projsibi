@@ -7,10 +7,17 @@ EXPOSE 8501
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libgl1-mesa-glx\
+    libgl1-mesa-glx \
     software-properties-common \
     git \
+    libhdf5-dev \
+    libhdf5-serial-dev \
+    libjpeg-dev \
+    liblapack-dev \
+    libblas-dev \
+    gfortran \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Upgrade pip, setuptools, and wheel to avoid potential issues
 RUN pip3 install --upgrade pip setuptools wheel
@@ -22,7 +29,8 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies with increased verbosity for debugging
-RUN pip3 install -r requirements.txt 
+RUN pip3 install -r requirements.txt --verbose
+
 
 # Copy the rest of the application code
 COPY . .
