@@ -141,6 +141,7 @@ def contoh_gestur():
 @st.cache_resource
 def load_model(model_path):
     try:
+        
         model = tf.keras.models.load_model(model_path)
         # st.write("Model berhasil dimuat.")
         return model
