@@ -38,9 +38,9 @@ image_paths = {
 }
 
 # Kamus untuk memetakan indeks ke huruf
-index_to_label = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H", 
-                  8: "I", 9: "K", 10: "L", 11: "M", 12: "N", 13: "O", 14: "P", 
-                  15: "Q", 16: "R", 17: "S", 18: "T", 19: "U", 20: "V", 
+index_to_label = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H",
+                  8: "I", 9: "K", 10: "L", 11: "M", 12: "N", 13: "O", 14: "P",
+                  15: "Q", 16: "R", 17: "S", 18: "T", 19: "U", 20: "V",
                   21: "W", 22: "X", 23: "Y"}
 
 # About the dataset
@@ -90,7 +90,8 @@ def landing_page():
     # Bagian Judul
     st.markdown("## Pengenalan Bahasa Isyarat SIBI")
     st.write("""
-    Selamat datang di platform kami yang bertujuan untuk memudahkan komunikasi dengan penyandang disabilitas melalui pengenalan bahasa isyarat SIBI (Sistem Isyarat Bahasa Indonesia). Bahasa isyarat adalah bentuk komunikasi yang menggunakan gerakan tangan untuk menyampaikan pesan, terutama digunakan oleh teman-teman kita yang memiliki hambatan pendengaran.
+    Selamat datang di platform kami yang bertujuan untuk memudahkan komunikasi dengan penyandang disabilitas melalui pengenalan bahasa isyarat SIBI (Sistem 
+Isyarat Bahasa Indonesia). Bahasa isyarat adalah bentuk komunikasi yang menggunakan gerakan tangan untuk menyampaikan pesan, terutama digunakan oleh teman-teman kita yang memiliki hambatan pendengaran.
     """)
 
     # Bagian Cara Kerja
@@ -111,7 +112,7 @@ def landing_page():
     st.markdown("## Manfaat dan Keunggulan")
     st.write("""
     - **Aksesibilitas:** Membuka pintu komunikasi bagi mereka yang memiliki kesulitan mendengar dan berbicara, serta bagi siapa saja yang ingin belajar bahasa isyarat.
-    - **Kemudahan Penggunaan:** Baik melalui kamera real-time maupun unggah gambar, proses pengenalan bahasa isyarat menjadi lebih mudah dan praktis.
+    - **Kemudahan Penggunaan:** Baik melalui kamera real-time maupun unggah gambar, proses pengenalan bahasa isyarat menjadi lebih mudah dan praktis.       
     - **Keandalan:** Dengan dukungan teknologi CNN dan model VGG16/VGG19, pengenalan huruf isyarat dapat dilakukan dengan presisi tinggi.
     """)
 
@@ -140,22 +141,24 @@ def contoh_gestur():
 # Fungsi untuk memuat model menggunakan cache
 @st.cache_resource
 def load_model(model_path):
+    """Memuat model Keras dari file .h5."""
     try:
-        
         model = tf.keras.models.load_model(model_path)
-        # st.write("Model berhasil dimuat.")
+        st.write("Model Keras berhasil dimuat.")
         return model
     except Exception as e:
-        st.write(f"Error memuat model: {e}")
+        st.write(f"Gagal memuat model Keras: {e}")
         return None
 
 # Jalur file lokal untuk model
-vgg16_path = 'model/VGG16FineTune.keras'
-vgg19_path = 'model/VGG19FineTune.keras'
+vgg16_path = 'model/VGG19.h5'  # Path model VGG16
+vgg19_path = 'model/VGG19.h5'  # Path model VGG19 (jika berbeda, gunakan jalur yang berbeda)
 
 # Memuat model dengan cache
 model1 = load_model(vgg16_path)
 model2 = load_model(vgg19_path)
+
+# Dictionary untuk menyimpan model
 models = {"VGG16": model1, "VGG19": model2}
 
 def webcam_classification_page(models):
@@ -179,6 +182,11 @@ def webcam_classification_page(models):
     mp_drawing = mp.solutions.drawing_utils
 
     camera = cv2.VideoCapture(0)
+    if not camera.isOpened():
+        st.error("Webcam tidak terdeteksi. Coba periksa apakah kamera terhubung dan izin akses sudah diberikan.")
+    else:
+       st.success("Webcam berhasil terhubung.")
+
     detected_letters = []
     last_detected_time = time.time()  # Waktu terakhir huruf terdeteksi
 
@@ -246,36 +254,36 @@ def upload_classification_page(models):
         image = Image.open(uploaded_file)
         image = correct_image_orientation(image)
         st.image(image, caption='Uploaded Image.', use_column_width=True)
-        
+
         if image.mode != "RGB":
             image = image.convert("RGB")
-        
+
         img_array = np.array(image.resize((128, 128)))/255.0
         img_array = np.expand_dims(img_array, axis=0)
         if models["VGG16"] is None or models["VGG19"] is None:
             st.error("Failed to load one or both models. Please check the model paths and try again.")
-            return        
+            return
         predictions_model1 = models["VGG16"].predict(img_array)
         predictions_model2 = models["VGG19"].predict(img_array)
-        
+
         label_model1 = np.argmax(predictions_model1)
         label_model2 = np.argmax(predictions_model2)
-        
+
         confidence_model1 = np.max(predictions_model1) * 100
         confidence_model2 = np.max(predictions_model2) * 100
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.write(f"Model VGG16: {index_to_label[label_model1]}")
             st.write(f"Confidence: {confidence_model1:.2f}%")
-        
+
         with col2:
             st.write(f"Model VGG19: {index_to_label[label_model2]}")
             st.write(f"Confidence: {confidence_model2:.2f}%")
 
 def main():
-    
+
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["Tentang SIBI", "Contoh Gestur Tangan", "Webcam Classification", "Image Upload Classification"])
 
