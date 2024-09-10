@@ -1,5 +1,6 @@
 Arsitektur AWS untuk Deploy Website SIBI dengan Skalabilitas dan Kinerja Tinggi
-Untuk membuat arsitektur AWS guna mendukung deploy website SIBI dengan skalabilitas dan kinerja tinggi Arsitektur ini akan menggunakan beberapa layanan AWS seperti EC2, VPC,  Internet Gatewayserta Nginx sebagai reverse proxy dan Docker untuk isolasi aplikasi.
+Untuk membuat arsitektur AWS guna mendukung deploy website SIBI dengan skalabilitas dan kinerja tinggi Arsitektur ini akan menggunakan beberapa layanan AWS seperti EC2, VPC,  Internet Gateway serta Nginx sebagai reverse proxy dan Docker untuk isolasi aplikasi.
+
   ![Architecture Diagram](https://github.com/endrycofr/projsibi/blob/master/images/projsibi.png)
   
 Berikut adalah langkah-langkah yang lebih disederhanakan dan disusun dengan baik untuk melakukan cloning dari GitHub, mempersiapkan kode untuk diisolasi menggunakan Docker, dan menjalankan aplikasi Streamlit dengan reverse proxy Nginx.
