@@ -160,7 +160,6 @@ model2 = load_model(vgg19_path)
 
 # Dictionary untuk menyimpan model
 models = {"VGG16": model1, "VGG19": model2}
-
 def webcam_classification_page(models):
     st.title("Webcam Classification")
     st.write("Use your webcam to classify images using a chosen model.")
@@ -169,81 +168,83 @@ def webcam_classification_page(models):
     model = models[model_choice]
 
     if model is None:
-        st.error("Failed to load model. Please check the model path and try again.")
+        st.error("Selected model is not loaded properly.")
         return
+
     run = st.button("Start Webcam")
     FRAME_WINDOW = st.image([])
-
+    
+    # Initialize MediaPipe Hands
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
         max_num_hands=1,
         min_detection_confidence=0.5,
-        min_tracking_confidence=0.5)
+        min_tracking_confidence=0.5
+    )
     mp_drawing = mp.solutions.drawing_utils
 
+    # Initialize camera
     camera = cv2.VideoCapture(0)
-    if not camera.isOpened():
-        st.error("Webcam tidak terdeteksi. Coba periksa apakah kamera terhubung dan izin akses sudah diberikan.")
-    else:
-       st.success("Webcam berhasil terhubung.")
 
-    detected_letters = []
-    last_detected_time = time.time()  # Waktu terakhir huruf terdeteksi
-
-    kalimat_placeholder = st.empty()  # Tempat untuk kalimat yang dibentuk
-    predicted_label = ''  # Nilai default untuk predicted_label
     if not camera.isOpened():
-        st.error("Failed to access webcam. Please ensure the webcam is properly connected.")
+        st.error("Failed to open the camera. Please ensure your webcam is connected.")
         return
 
-    # Memulai kamera
-    while run:
-        ret, frame = camera.read()
-        if not ret:
-            st.write("Failed to capture image from webcam.")
-            break
+    detected_letters = []
+    last_detected_time = time.time()  # Time of last detected letter
 
-        frame = cv2.flip(frame, 1)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    kalimat_placeholder = st.empty()  # Placeholder for the sentence being formed
+    predicted_label = ''  # Default value for predicted_label
 
-        results = hands.process(frame_rgb)
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(frame_rgb, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+    try:
+        while run:
+            ret, frame = camera.read()
+            if not ret:
+                st.error("Failed to capture image from the camera.")
+                break
 
-                h, w, _ = frame.shape
-                cx_min = int(min([lm.x for lm in hand_landmarks.landmark]) * w)
-                cy_min = int(min([lm.y for lm in hand_landmarks.landmark]) * h)
-                cx_max = int(max([lm.x for lm in hand_landmarks.landmark]) * w)
-                cy_max = int(max([lm.y for lm in hand_landmarks.landmark]) * h)
+            frame = cv2.flip(frame, 1)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-                hand_img = frame_rgb[cy_min:cy_max, cx_min:cx_max]
+            results = hands.process(frame_rgb)
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    mp_drawing.draw_landmarks(frame_rgb, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                if hand_img.size != 0:
-                    hand_img = cv2.resize(hand_img, (128, 128))
-                    hand_img = np.expand_dims(hand_img, axis=0)
-                    hand_img = hand_img / 255.0
+                    h, w, _ = frame.shape
+                    cx_min = int(min([lm.x for lm in hand_landmarks.landmark]) * w)
+                    cy_min = int(min([lm.y for lm in hand_landmarks.landmark]) * h)
+                    cx_max = int(max([lm.x for lm in hand_landmarks.landmark]) * w)
+                    cy_max = int(max([lm.y for lm in hand_landmarks.landmark]) * h)
 
-                    try:
+                    hand_img = frame_rgb[cy_min:cy_max, cx_min:cx_max]
+
+                    if hand_img.size != 0:
+                        hand_img = cv2.resize(hand_img, (128, 128))
+                        hand_img = np.expand_dims(hand_img, axis=0)
+                        hand_img = hand_img / 255.0
+
                         prediction = model.predict(hand_img)
                         predicted_index = np.argmax(prediction)
                         predicted_label = index_to_label[predicted_index]
-                    except Exception as e:
-                        st.write(f"Error during prediction: {e}")
-                        predicted_label = "Error"
 
-                    cv2.putText(frame_rgb, predicted_label, (cx_min, cy_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                        cv2.putText(frame_rgb, predicted_label, (cx_min, cy_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
-                    current_time = time.time()
-                    if current_time - last_detected_time > 2:  # Jeda 2 detik antar huruf
-                        detected_letters.append(predicted_label)
-                        last_detected_time = current_time
+                        current_time = time.time()
+                        if current_time - last_detected_time > 2:  # 2 seconds interval between detections
+                            detected_letters.append(predicted_label)
+                            last_detected_time = current_time
 
-        FRAME_WINDOW.image(frame_rgb)
-        kalimat_placeholder.write(f"Kalimat yang dibentuk: {''.join(detected_letters)}  |  Huruf yang terdeteksi: {predicted_label}")  # Menampilkan kalimat dan huruf di sebelah kanan
+            FRAME_WINDOW.image(frame_rgb)
+            kalimat_placeholder.write(f"Kalimat yang dibentuk: {''.join(detected_letters)}  |  Huruf yang terdeteksi: {predicted_label}")
 
-    camera.release()
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
+    finally:
+        # Release the camera when done
+        camera.release()
+        cv2.destroyAllWindows()
 
 def upload_classification_page(models):
     st.title("Image Upload Classification")
@@ -298,3 +299,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+

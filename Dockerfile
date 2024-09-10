@@ -29,7 +29,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies with increased verbosity for debugging
-RUN pip3 install -r requirements.txt --verbose
+RUN pip3 install -r requirements.txt 
 
 
 # Copy the rest of the application code
